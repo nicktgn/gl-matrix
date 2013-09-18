@@ -25,6 +25,94 @@ describe("vec3", function() {
 
     beforeEach(function() { vecA = [1, 2, 3]; vecB = [4, 5, 6]; out = [0, 0, 0]; });
 
+    describe('transformMat4', function() {
+        var matr;
+        describe("with an identity", function() {
+            beforeEach(function() { matr = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] });
+
+            beforeEach(function() { result = vec3.transformMat4(out, vecA, matr); });
+
+            it("should produce the input", function() {
+                expect(out).toBeEqualish([1, 2, 3]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a lookAt", function() {
+            beforeEach(function() { matr = mat4.lookAt(mat4.create(), [5, 6, 7], [2, 6, 7], [0, 1, 0]); });
+
+            beforeEach(function() { result = vec3.transformMat4(out, vecA, matr); });
+
+            it("should rotate and translate the input", function() {
+                expect(out).toBeEqualish([ 4, -4, -4 ]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+    });
+
+    describe('transformMat3', function() {
+        var matr;
+        describe("with an identity", function() {
+            beforeEach(function() { matr = [1, 0, 0, 0, 1, 0, 0, 0, 1 ] });
+
+            beforeEach(function() { result = vec3.transformMat3(out, vecA, matr); });
+
+            it("should produce the input", function() {
+                expect(out).toBeEqualish([1, 2, 3]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with 90deg about X", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [0,1,0], [1,0,0,0,0,1,0,-1,0]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,0,1]);
+            });
+        });
+
+        describe("with 90deg about Y", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [1,0,0], [0,0,-1,0,1,0,1,0,0]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,0,-1]);
+            });
+        });
+
+        describe("with 90deg about Z", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [1,0,0], [0,1,0,-1,0,0,0,0,1]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,1,0]);
+            });
+        });
+
+        describe("with a lookAt normal matrix", function() {
+            beforeEach(function() {
+                matr = mat4.lookAt(mat4.create(), [5, 6, 7], [2, 6, 7], [0, 1, 0]);
+                var n = mat3.create();
+                matr = mat3.transpose(n, mat3.invert(n, mat3.fromMat4(n, matr)));
+            });
+
+            beforeEach(function() { result = vec3.transformMat3(out, [1,0,0], matr); });
+
+            it("should rotate the input", function() {
+                expect(out).toBeEqualish([ 0,0,1 ]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+    });
+
     describe("create", function() {
         beforeEach(function() { result = vec3.create(); });
         it("should return a 3 element array initialized to 0s", function() { expect(result).toBeEqualish([0, 0, 0]); });
@@ -241,6 +329,33 @@ describe("vec3", function() {
         });
     });
 
+    describe("scaleAndAdd", function() {
+        describe("with a separate output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(out, vecA, vecB, 0.5); });
+            
+            it("should place values into out", function() { expect(out).toBeEqualish([3, 4.5, 6]); });
+            it("should return out", function() { expect(result).toBe(out); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([4, 5, 6]); });
+        });
+
+        describe("when vecA is the output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(vecA, vecA, vecB, 0.5); });
+            
+            it("should place values into vecA", function() { expect(vecA).toBeEqualish([3, 4.5, 6]); });
+            it("should return vecA", function() { expect(result).toBe(vecA); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([4, 5, 6]); });
+        });
+
+        describe("when vecB is the output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(vecB, vecA, vecB, 0.5); });
+            
+            it("should place values into vecB", function() { expect(vecB).toBeEqualish([3, 4.5, 6]); });
+            it("should return vecB", function() { expect(result).toBe(vecB); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+        });
+    });
+
     describe("distance", function() {
         it("should have an alias called 'dist'", function() { expect(vec3.dist).toEqual(vec3.distance); });
 
@@ -368,6 +483,22 @@ describe("vec3", function() {
             it("should place values into vecB", function() { expect(vecB).toBeEqualish([2.5, 3.5, 4.5]); });
             it("should return vecB", function() { expect(result).toBe(vecB); });
             it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+        });
+    });
+
+    describe("random", function() {
+        describe("with no scale", function() {
+            beforeEach(function() { result = vec3.random(out); });
+            
+            it("should result in a unit length vector", function() { expect(vec3.length(out)).toBeCloseTo(1.0); });
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a scale", function() {
+            beforeEach(function() { result = vec3.random(out, 5.0); });
+            
+            it("should result in a unit length vector", function() { expect(vec3.length(out)).toBeCloseTo(5.0); });
+            it("should return out", function() { expect(result).toBe(out); });
         });
     });
 

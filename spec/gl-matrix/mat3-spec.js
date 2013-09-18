@@ -41,6 +41,60 @@ describe("mat3", function() {
                     0, 0, 1];
     });
 
+    describe("normalFromMat4", function() {
+        beforeEach(function() {
+            matA = [1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1];
+            result = mat3.normalFromMat4(out, matA);
+        });
+
+        it("should return out", function() { expect(result).toBe(out); });
+
+        describe("with translation and rotation", function() {
+            beforeEach(function() {
+                mat4.translate(matA, matA, [2, 4, 6]);
+                mat4.rotateX(matA, matA, Math.PI / 2);
+
+                result = mat3.normalFromMat4(out, matA);
+            });
+
+            it("should give rotated matrix", function() {
+                expect(result).toBeEqualish([1, 0, 0,
+                                             0, 0, 1,
+                                             0,-1, 0]);
+            });
+
+            describe("and scale", function() {
+                beforeEach(function() {
+                    mat4.scale(matA, matA, [2, 3, 4]);
+
+                    result = mat3.normalFromMat4(out, matA);
+                });
+
+                it("should give rotated matrix", function() {
+                    expect(result).toBeEqualish([0.5, 0,    0,
+                                                 0,   0,    0.333333,
+                                                 0,  -0.25, 0]);
+                });
+            });
+        });
+    });
+
+    describe("fromQuat", function() {
+        beforeEach(function() {
+            var q = [ 0, -0.7071067811865475, 0, 0.7071067811865475 ];
+            result = mat3.fromQuat(out, q);
+        });
+
+        it("should return out", function() { expect(result).toBe(out); });
+
+        it("should be equivalent to a PI rotation about the Y axis", function() {
+            expect(vec3.transformMat3([], [0,0,-1], out)).toBeEqualish([-1,0,0]);
+        });
+    });
+
     describe("fromMat4", function() {
         beforeEach(function() {
             result = mat3.fromMat4(out, [ 1, 2, 3, 4,
@@ -54,6 +108,16 @@ describe("mat3", function() {
             expect(out).toBeEqualish([ 1, 2, 3,
                                        5, 6, 7,
                                        9,10,11]);
+        });
+    });
+
+    describe("scale", function() {
+        beforeEach(function() { result = mat3.scale(out, matA, [2,2]); });
+        it("should return out", function() { expect(result).toBe(out); });
+        it('should place proper values in out', function() {
+            expect(out).toBeEqualish([ 2, 0, 0,
+                                       0, 2, 0,
+                                       1, 2, 1 ]);
         });
     });
 
