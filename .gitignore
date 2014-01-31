@@ -3,3 +3,5 @@ covershot
 .DS_Store
 tmp
 node_modules
+.bundle
+vendor
