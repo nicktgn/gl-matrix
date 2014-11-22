@@ -24,7 +24,40 @@ describe("vec3", function() {
     var out, vecA, vecB, result;
 
     beforeEach(function() { vecA = [1, 2, 3]; vecB = [4, 5, 6]; out = [0, 0, 0]; });
-
+    
+    describe('rotateX', function(){
+     	describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [0, 1, 0]; vecB = [0, 0, 0]; result = vec3.rotateX(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -1, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [2, 7, 0]; vecB = [2, 5, 0]; result = vec3.rotateX(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([2, 3, 0]); });
+    		});
+    	});
+    
+    	describe('rotateY', function(){
+    		describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [1, 0, 0]; vecB = [0, 0, 0]; result = vec3.rotateY(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([-1, 0, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [-2, 3, 10]; vecB = [-4, 3, 10]; result = vec3.rotateY(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([-6, 3, 10]); });
+    		});
+    	});
+    
+    	describe('rotateZ', function(){
+    		describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [0, 1, 0]; vecB = [0, 0, 0]; result = vec3.rotateZ(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -1, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [0, 6, -5]; vecB = [0, 0, -5]; result = vec3.rotateZ(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -6, -5]); });
+    		});
+    	});
+    
     describe('transformMat4', function() {
         var matr;
         describe("with an identity", function() {
@@ -50,6 +83,18 @@ describe("vec3", function() {
 
             it("should return out", function() { expect(result).toBe(out); });
         });
+
+        describe("with a perspective matrix (#92)", function() {
+            it("should transform a point from perspective(pi/2, 4/3, 1, 100)", function() {
+                matr = [0.750, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, -1.02, -1,
+                        0, 0, -2.02, 0];
+                result = vec3.transformMat4([], [10, 20, 30], matr);
+                expect(result).toBeEqualish([-0.25, -0.666666, 1.087333]);
+            });
+        });
+
     });
 
     describe('transformMat3', function() {
